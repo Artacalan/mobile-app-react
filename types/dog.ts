@@ -51,8 +51,10 @@ export interface DogApiResponse {
 export interface DogContextType {
   breeds: Breed[];
   loading: boolean;
+  loadingMore: boolean;
   error: string | null;
   currentPage: number;
   totalPages: number;
-  fetchBreeds: (page: number, pageSize: number) => Promise<void>;
+  fetchBreeds: () => Promise<void>;
+  loadMoreBreeds: () => Promise<void>;
 }

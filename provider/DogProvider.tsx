@@ -4,21 +4,33 @@ import { fetchDogBreeds } from '../services/dogApi';
 
 const DogContext = createContext<DogContextType | undefined>(undefined);
 
+const PAGE_SIZE = 10;
+
 export const DogProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const [breeds, setBreeds] = useState<Breed[]>([]);
   const [loading, setLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
 
-  const fetchBreeds = async (page: number = 1, pageSize: number = 10) => {
+  const loadPage = async (page: number, replaceBreeds: boolean) => {
     try {
-      setLoading(true);
+      if (replaceBreeds) {
+        setLoading(true);
+      } else {
+        setLoadingMore(true);
+      }
+
       setError(null);
-      const response = await fetchDogBreeds(page, pageSize);
-      setBreeds(response.data);
+
+      const response = await fetchDogBreeds(page, PAGE_SIZE);
+
+      setBreeds((previousBreeds) =>
+        replaceBreeds ? response.data : [...previousBreeds, ...response.data]
+      );
       setCurrentPage(response.meta.pagination.current);
       setTotalPages(response.meta.pagination.last);
     } catch (err) {
@@ -28,10 +40,25 @@ export const DogProvider: React.FC<{ children: React.ReactNode }> = ({
       console.error('Error in DogProvider:', errorMessage);
     } finally {
       setLoading(false);
+      setLoadingMore(false);
     }
   };
 
-  // Charge les races au montage du provider
+  const fetchBreeds = async () => {
+    setBreeds([]);
+    setCurrentPage(0);
+    setTotalPages(0);
+    await loadPage(1, true);
+  };
+
+  const loadMoreBreeds = async () => {
+    if (loading || loadingMore || currentPage >= totalPages) {
+      return;
+    }
+
+    await loadPage(currentPage + 1, false);
+  };
+
   useEffect(() => {
     fetchBreeds();
   }, []);
@@ -39,10 +66,12 @@ export const DogProvider: React.FC<{ children: React.ReactNode }> = ({
   const value: DogContextType = {
     breeds,
     loading,
+    loadingMore,
     error,
     currentPage,
     totalPages,
     fetchBreeds,
+    loadMoreBreeds,
   };
 
   return <DogContext.Provider value={value}>{children}</DogContext.Provider>;

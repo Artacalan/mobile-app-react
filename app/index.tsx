@@ -5,26 +5,21 @@ import {
   FlatList,
   ActivityIndicator,
   TouchableOpacity,
-  ScrollView,
 } from 'react-native';
 import { useDogs } from '../provider/DogProvider';
 import { Breed } from '../types/dog';
 
 export default function Page() {
-  const { breeds, loading, error, currentPage, totalPages, fetchBreeds } =
-    useDogs();
-
-  const handleNextPage = () => {
-    if (currentPage < totalPages) {
-      fetchBreeds(currentPage + 1, 10);
-    }
-  };
-
-  const handlePreviousPage = () => {
-    if (currentPage > 1) {
-      fetchBreeds(currentPage - 1, 10);
-    }
-  };
+  const {
+    breeds,
+    loading,
+    loadingMore,
+    error,
+    currentPage,
+    totalPages,
+    fetchBreeds,
+    loadMoreBreeds,
+  } = useDogs();
 
   const renderBreedItem = ({ item }: { item: Breed }) => (
     <View style={styles.breedCard}>
@@ -62,10 +57,7 @@ export default function Page() {
     return (
       <View style={styles.centerContainer}>
         <Text style={styles.errorText}>Error: {error}</Text>
-        <TouchableOpacity
-          style={styles.retryButton}
-          onPress={() => fetchBreeds(1 , 10)}
-        >
+        <TouchableOpacity style={styles.retryButton} onPress={fetchBreeds}>
           <Text style={styles.retryButtonText}>Retry</Text>
         </TouchableOpacity>
       </View>
@@ -77,11 +69,11 @@ export default function Page() {
       <View style={styles.header}>
         <Text style={styles.title}>Dog Breeds</Text>
         <Text style={styles.pageInfo}>
-          Page {currentPage} of {totalPages}
+          Page {Math.max(currentPage, 1)} / {Math.max(totalPages, 1)}
         </Text>
       </View>
 
-      {loading && breeds.length > 0 && (
+      {(loading || loadingMore) && breeds.length > 0 && (
         <View style={styles.loadingIndicator}>
           <ActivityIndicator size="small" color="#0066cc" />
         </View>
@@ -91,47 +83,22 @@ export default function Page() {
         data={breeds}
         renderItem={renderBreedItem}
         keyExtractor={(item) => item.id}
-        scrollEnabled={false}
+        contentContainerStyle={breeds.length === 0 && styles.emptyListContent}
+        onEndReached={loadMoreBreeds}
+        onEndReachedThreshold={0.4}
+        ListFooterComponent={
+          loadingMore ? (
+            <View style={styles.footerLoading}>
+              <ActivityIndicator size="small" color="#0066cc" />
+            </View>
+          ) : null
+        }
+        ListEmptyComponent={
+          !loading ? (
+            <Text style={styles.emptyText}>No dog breeds found.</Text>
+          ) : null
+        }
       />
-
-      <View style={styles.paginationContainer}>
-        <TouchableOpacity
-          style={[styles.button, currentPage === 1 && styles.buttonDisabled]}
-          onPress={handlePreviousPage}
-          disabled={currentPage === 1}
-        >
-          <Text
-            style={[
-              styles.buttonText,
-              currentPage === 1 && styles.buttonTextDisabled,
-            ]}
-          >
-            Previous
-          </Text>
-        </TouchableOpacity>
-
-        <Text style={styles.pageText}>
-          {currentPage} / {totalPages}
-        </Text>
-
-        <TouchableOpacity
-          style={[
-            styles.button,
-            currentPage >= totalPages && styles.buttonDisabled,
-          ]}
-          onPress={handleNextPage}
-          disabled={currentPage >= totalPages}
-        >
-          <Text
-            style={[
-              styles.buttonText,
-              currentPage >= totalPages && styles.buttonTextDisabled,
-            ]}
-          >
-            Next
-          </Text>
-        </TouchableOpacity>
-      </View>
     </View>
   );
 }
@@ -161,6 +128,16 @@ const styles = StyleSheet.create({
   pageInfo: {
     fontSize: 14,
     color: '#666',
+  },
+  emptyListContent: {
+    flexGrow: 1,
+    justifyContent: 'center',
+  },
+  emptyText: {
+    textAlign: 'center',
+    color: '#666',
+    fontSize: 16,
+    paddingVertical: 24,
   },
   breedCard: {
     backgroundColor: '#fff',
@@ -208,6 +185,9 @@ const styles = StyleSheet.create({
   loadingIndicator: {
     paddingVertical: 8,
   },
+  footerLoading: {
+    paddingVertical: 16,
+  },
   loadingText: {
     fontSize: 16,
     color: '#666',
@@ -229,42 +209,5 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
-  },
-  paginationContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 16,
-    marginBottom: 16,
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 3,
-  },
-  button: {
-    backgroundColor: '#0066cc',
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 8,
-  },
-  buttonDisabled: {
-    backgroundColor: '#ccc',
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  buttonTextDisabled: {
-    color: '#999',
-  },
-  pageText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#333',
   },
 });
