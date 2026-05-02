@@ -6,6 +6,7 @@ import {
   ActivityIndicator,
   TouchableOpacity,
 } from 'react-native';
+import { Link } from 'expo-router';
 import { useDogs } from '../provider/DogProvider';
 import { Breed } from '../types/dog';
 
@@ -22,26 +23,29 @@ export default function Page() {
   } = useDogs();
 
   const renderBreedItem = ({ item }: { item: Breed }) => (
-    <View style={styles.breedCard}>
-      <Text style={styles.breedName}>{item.attributes.name}</Text>
-      <Text style={styles.breedDescription} numberOfLines={2}>
-        {item.attributes.description}
-      </Text>
-      <View style={styles.breedDetails}>
-        <View style={styles.detailRow}>
-          <Text style={styles.detailLabel}>Life span:</Text>
-          <Text style={styles.detailValue}>
-            {item.attributes.life.min} - {item.attributes.life.max} years
-          </Text>
+    <Link href={`/${item.id}`} asChild>
+      <TouchableOpacity style={styles.breedCard} activeOpacity={0.8}>
+        <Text style={styles.breedName}>{item.attributes.name}</Text>
+        <Text style={styles.breedDescription} numberOfLines={2}>
+          {item.attributes.description}
+        </Text>
+        <View style={styles.breedDetails}>
+          <View style={styles.detailRow}>
+            <Text style={styles.detailLabel}>Life span:</Text>
+            <Text style={styles.detailValue}>
+              {item.attributes.life.min} - {item.attributes.life.max} years
+            </Text>
+          </View>
+          <View style={styles.detailRow}>
+            <Text style={styles.detailLabel}>Hypoallergenic:</Text>
+            <Text style={styles.detailValue}>
+              {item.attributes.hypoallergenic ? 'Yes' : 'No'}
+            </Text>
+          </View>
+          <Text style={styles.detailHint}>Tap to see details</Text>
         </View>
-        <View style={styles.detailRow}>
-          <Text style={styles.detailLabel}>Hypoallergenic:</Text>
-          <Text style={styles.detailValue}>
-            {item.attributes.hypoallergenic ? 'Yes' : 'No'}
-          </Text>
-        </View>
-      </View>
-    </View>
+      </TouchableOpacity>
+    </Link>
   );
 
   if (loading && breeds.length === 0) {
@@ -181,6 +185,13 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#333',
     fontWeight: '600',
+  },
+  detailHint: {
+    marginTop: 8,
+    fontSize: 12,
+    color: '#0066cc',
+    fontWeight: '600',
+    textAlign: 'right',
   },
   loadingIndicator: {
     paddingVertical: 8,
