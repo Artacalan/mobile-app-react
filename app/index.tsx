@@ -113,6 +113,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#f5f5f5',
     paddingHorizontal: 16,
     paddingTop: 16,
+    marginTop: 32,
   },
   centerContainer: {
     flex: 1,
