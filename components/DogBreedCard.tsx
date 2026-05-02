@@ -1,36 +1,46 @@
-import { Link } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Breed } from '../types/dog';
+import { DogFavoriteButton } from './DogFavoriteButton';
 
 interface DogBreedCardProps {
   breed: Breed;
+  isFavorite: boolean;
+  onToggleFavorite: () => void;
 }
 
-export function DogBreedCard({ breed }: DogBreedCardProps) {
+export function DogBreedCard({ breed, isFavorite, onToggleFavorite }: DogBreedCardProps) {
+  const router = useRouter();
+
   return (
-    <Link href={`/${breed.id}`} asChild>
-      <TouchableOpacity style={styles.card} activeOpacity={0.8}>
-        <Text style={styles.name}>{breed.attributes.name}</Text>
-        <Text style={styles.description} numberOfLines={2}>
-          {breed.attributes.description}
-        </Text>
-        <View style={styles.details}>
-          <View style={styles.row}>
-            <Text style={styles.label}>Life span:</Text>
-            <Text style={styles.value}>
-              {breed.attributes.life.min} - {breed.attributes.life.max} years
-            </Text>
-          </View>
-          <View style={styles.row}>
-            <Text style={styles.label}>Hypoallergenic:</Text>
-            <Text style={styles.value}>
-              {breed.attributes.hypoallergenic ? 'Yes' : 'No'}
-            </Text>
-          </View>
-          <Text style={styles.hint}>Tap to see details</Text>
+    <TouchableOpacity
+      style={styles.card}
+      activeOpacity={0.85}
+      onPress={() => router.push(`/${breed.id}`)}
+    >
+      <Text style={styles.name}>{breed.attributes.name}</Text>
+      <Text style={styles.description} numberOfLines={2}>
+        {breed.attributes.description}
+      </Text>
+      <View style={styles.details}>
+        <View style={styles.row}>
+          <Text style={styles.label}>Life span:</Text>
+          <Text style={styles.value}>
+            {breed.attributes.life.min} - {breed.attributes.life.max} years
+          </Text>
         </View>
-      </TouchableOpacity>
-    </Link>
+        <View style={styles.row}>
+          <Text style={styles.label}>Hypoallergenic:</Text>
+          <Text style={styles.value}>
+            {breed.attributes.hypoallergenic ? 'Yes' : 'No'}
+          </Text>
+        </View>
+        <View style={styles.actionRow}>
+          <Text style={styles.hint}>Tap to see details</Text>
+          <DogFavoriteButton isFavorite={isFavorite} onPress={onToggleFavorite} />
+        </View>
+      </View>
+    </TouchableOpacity>
   );
 }
 
@@ -78,11 +88,17 @@ const styles = StyleSheet.create({
     color: '#333',
     fontWeight: '600',
   },
-  hint: {
+  actionRow: {
     marginTop: 8,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: 12,
+  },
+  hint: {
     fontSize: 12,
     color: '#0066cc',
     fontWeight: '600',
-    textAlign: 'right',
+    flexShrink: 1,
   },
 });

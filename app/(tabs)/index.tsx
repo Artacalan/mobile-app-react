@@ -1,17 +1,13 @@
-import {
-  StyleSheet,
-  View,
-  FlatList,
-} from 'react-native';
 import { useMemo, useState } from 'react';
-import { useDogs } from '../provider/DogProvider';
-import { DogBreedCard } from '../components/DogBreedCard';
-import { DogListHeader } from '../components/DogListHeader';
-import { DogLoadingState } from '../components/DogLoadingState';
-import { DogErrorState } from '../components/DogErrorState';
-import { DogEmptyState } from '../components/DogEmptyState';
-import { DogLoadingMoreFooter } from '../components/DogLoadingMoreFooter';
-import { DogSearchBar } from '../components/DogSearchBar';
+import { FlatList, StyleSheet, View } from 'react-native';
+import { useDogs } from '../../provider/DogProvider';
+import { DogBreedCard } from '../../components/DogBreedCard';
+import { DogListHeader } from '../../components/DogListHeader';
+import { DogLoadingState } from '../../components/DogLoadingState';
+import { DogErrorState } from '../../components/DogErrorState';
+import { DogEmptyState } from '../../components/DogEmptyState';
+import { DogLoadingMoreFooter } from '../../components/DogLoadingMoreFooter';
+import { DogSearchBar } from '../../components/DogSearchBar';
 
 export default function Page() {
   const [search, setSearch] = useState('');
@@ -24,6 +20,8 @@ export default function Page() {
     totalPages,
     fetchBreeds,
     loadMoreBreeds,
+    toggleFavorite,
+    isFavorite,
   } = useDogs();
 
   const filteredBreeds = useMemo(() => {
@@ -58,7 +56,13 @@ export default function Page() {
 
       <FlatList
         data={filteredBreeds}
-        renderItem={({ item }) => <DogBreedCard breed={item} />}
+        renderItem={({ item }) => (
+          <DogBreedCard
+            breed={item}
+            isFavorite={isFavorite(item.id)}
+            onToggleFavorite={() => toggleFavorite(item)}
+          />
+        )}
         keyExtractor={(item) => item.id}
         contentContainerStyle={filteredBreeds.length === 0 && styles.emptyListContent}
         onEndReached={loadMoreBreeds}

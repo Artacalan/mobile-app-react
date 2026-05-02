@@ -2,10 +2,11 @@ import { useMemo } from 'react';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { useLocalSearchParams, Stack } from 'expo-router';
 import { useDogs } from '../provider/DogProvider';
+import { DogFavoriteButton } from '../components/DogFavoriteButton';
 
 export default function BreedDetailPage() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { breeds, loading, error } = useDogs();
+  const { breeds, loading, error, isFavorite, toggleFavorite } = useDogs();
 
   const breed = useMemo(
     () => breeds.find((item) => item.id === id),
@@ -43,6 +44,12 @@ export default function BreedDetailPage() {
 
       <View style={styles.card}>
         <Text style={styles.title}>{breed.attributes.name}</Text>
+        <View style={styles.favoriteRow}>
+          <DogFavoriteButton
+            isFavorite={isFavorite(breed.id)}
+            onPress={() => toggleFavorite(breed)}
+          />
+        </View>
         <Text style={styles.description}>{breed.attributes.description}</Text>
 
         <View style={styles.section}>
@@ -114,6 +121,9 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     color: '#4b5563',
     marginBottom: 20,
+  },
+  favoriteRow: {
+    marginBottom: 16,
   },
   section: {
     paddingVertical: 12,

@@ -50,6 +50,7 @@ export interface DogApiResponse {
 
 export interface DogContextType {
   breeds: Breed[];
+  favorites: Breed[];
   loading: boolean;
   loadingMore: boolean;
   error: string | null;
@@ -57,4 +58,6 @@ export interface DogContextType {
   totalPages: number;
   fetchBreeds: () => Promise<void>;
   loadMoreBreeds: () => Promise<void>;
+  toggleFavorite: (breed: Breed) => void;
+  isFavorite: (breedId: string) => boolean;
 }

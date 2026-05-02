@@ -10,6 +10,7 @@ export const DogProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const [breeds, setBreeds] = useState<Breed[]>([]);
+  const [favorites, setFavorites] = useState<Breed[]>([]);
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -59,12 +60,28 @@ export const DogProvider: React.FC<{ children: React.ReactNode }> = ({
     await loadPage(currentPage + 1, false);
   };
 
+  const toggleFavorite = (breed: Breed) => {
+    setFavorites((previousFavorites) => {
+      const isAlreadyFavorite = previousFavorites.some((item) => item.id === breed.id);
+
+      if (isAlreadyFavorite) {
+        return previousFavorites.filter((item) => item.id !== breed.id);
+      }
+
+      return [...previousFavorites, breed];
+    });
+  };
+
+  const isFavorite = (breedId: string) =>
+    favorites.some((breed) => breed.id === breedId);
+
   useEffect(() => {
     fetchBreeds();
   }, []);
 
   const value: DogContextType = {
     breeds,
+    favorites,
     loading,
     loadingMore,
     error,
@@ -72,6 +89,8 @@ export const DogProvider: React.FC<{ children: React.ReactNode }> = ({
     totalPages,
     fetchBreeds,
     loadMoreBreeds,
+    toggleFavorite,
+    isFavorite,
   };
 
   return <DogContext.Provider value={value}>{children}</DogContext.Provider>;
