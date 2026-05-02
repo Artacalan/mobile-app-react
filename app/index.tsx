@@ -3,6 +3,7 @@ import {
   View,
   FlatList,
 } from 'react-native';
+import { useMemo, useState } from 'react';
 import { useDogs } from '../provider/DogProvider';
 import { DogBreedCard } from '../components/DogBreedCard';
 import { DogListHeader } from '../components/DogListHeader';
@@ -10,8 +11,10 @@ import { DogLoadingState } from '../components/DogLoadingState';
 import { DogErrorState } from '../components/DogErrorState';
 import { DogEmptyState } from '../components/DogEmptyState';
 import { DogLoadingMoreFooter } from '../components/DogLoadingMoreFooter';
+import { DogSearchBar } from '../components/DogSearchBar';
 
 export default function Page() {
+  const [search, setSearch] = useState('');
   const {
     breeds,
     loading,
@@ -22,6 +25,21 @@ export default function Page() {
     fetchBreeds,
     loadMoreBreeds,
   } = useDogs();
+
+  const filteredBreeds = useMemo(() => {
+    const query = search.trim().toLowerCase();
+
+    if (!query) {
+      return breeds;
+    }
+
+    return breeds.filter((breed) => {
+      const name = breed.attributes.name.toLowerCase();
+      const description = breed.attributes.description.toLowerCase();
+
+      return name.includes(query) || description.includes(query);
+    });
+  }, [breeds, search]);
 
   if (loading && breeds.length === 0) {
     return <DogLoadingState message="Loading dog breeds..." />;
@@ -34,18 +52,19 @@ export default function Page() {
   return (
     <View style={styles.container}>
       <DogListHeader currentPage={currentPage} totalPages={totalPages} />
+      <DogSearchBar value={search} onChangeText={setSearch} />
 
       {(loading || loadingMore) && breeds.length > 0 && <DogLoadingMoreFooter loading />}
 
       <FlatList
-        data={breeds}
+        data={filteredBreeds}
         renderItem={({ item }) => <DogBreedCard breed={item} />}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={breeds.length === 0 && styles.emptyListContent}
+        contentContainerStyle={filteredBreeds.length === 0 && styles.emptyListContent}
         onEndReached={loadMoreBreeds}
         onEndReachedThreshold={0.4}
         ListFooterComponent={<DogLoadingMoreFooter loading={loadingMore} />}
-        ListEmptyComponent={!loading ? <DogEmptyState /> : null}
+        ListEmptyComponent={!loading ? <DogEmptyState message={search ? 'No matching dog breeds found.' : undefined} /> : null}
       />
     </View>
   );
